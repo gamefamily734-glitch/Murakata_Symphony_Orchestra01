@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Operasional - Murakata Symphony Orchestra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col md:flex-row">
+
+    <div id="auth-screen" class="fixed inset-0 bg-slate-950/95 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-8 max-w-md w-full space-y-6 shadow-2xl relative z-10">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-music text-xl text-amber-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Murakata Symphony Orchestra</h2>
+                <p class="text-xs text-amber-400 font-semibold tracking-widest uppercase">Website Operasional</p>
+            </div>
+
+            <div id="login-form-panel" class="space-y-4">
+                <h3 class="text-sm font-semibold text-slate-400">Masuk ke Sistem</h3>
+                <input type="text" id="auth-user" placeholder="Nama Pengguna" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+                <input type="password" id="auth-pass" placeholder="Kata Sandi" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+                <button onclick="handleLogin()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-amber-500/10">Sign In</button>
+                <p class="text-xs text-center text-slate-400">Anggota baru? <button onclick="toggleAuthPanel(true)" class="text-amber-400 font-semibold underline">Daftar Akun</button></p>
+            </div>
+
+            <div id="register-form-panel" class="space-y-4 hidden">
+                <h3 class="text-sm font-semibold text-slate-400">Buat Akun Baru Anggota</h3>
+                <input type="text" id="reg-user" placeholder="Nama Lengkap" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+                <input type="password" id="reg-pass" placeholder="Kata Sandi" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+                <div class="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl text-xs flex gap-2">
+                    <i class="fas fa-info-circle shrink-0 mt-0.5"></i>
+                    <span>Akun baru memerlukan verifikasi persetujuan (Approval) dari Moderator Utama sebelum dapat mengakses data internal.</span>
+                </div>
+                <button onclick="handleRegister()" class="w-full bg-emerald-600 hover:bg-emerald-700 font-bold py-3 rounded-xl text-white text-sm transition">Ajukan Pendaftaran</button>
+                <p class="text-xs text-center text-slate-400">Sudah terdaftar? <button onclick="toggleAuthPanel(false)" class="text-amber-400 font-semibold underline">Login</button></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full md:w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between shrink-0 hidden md:flex relative z-10" id="main-sidebar">
+        <div>
+            <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+                <div class="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center shrink-0">
+                    <i class="fas fa-gavel text-slate-950 text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-sm text-white tracking-wide">Murakata Symphony Orchestra</h1>
+                    <span class="text-[10px] text-amber-400 font-semibold tracking-wider uppercase">Website Operasional</span>
+                </div>
+            </div>
+
+            <nav class="p-4 space-y-1.5">
+                <button onclick="switchTab('absen')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold transition">
+                    <i class="fas fa-user-clock w-5 text-center"></i> Presensi Anggota
+                </button>
+                <button onclick="switchTab('rekap')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white font-medium transition">
+                    <i class="fas fa-id-card-clip w-5 text-center"></i> Profil & Rekap
+                </button>
+                <button onclick="switchTab('asset')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white font-medium transition">
+                    <i class="fas fa-violin w-5 text-center"></i> Manajemen Asset
+                </button>
+                <button id="nav-kas-btn" onclick="switchTab('kas')" class="nav-btn w-full items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-medium cursor-not-allowed hidden" disabled>
+                    <i class="fas fa-wallet w-5 text-center"></i> Jurnal Kas (🔒)
+                </button>
+                <button id="nav-approval-btn" onclick="switchTab('approval')" class="nav-btn w-full items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-medium cursor-not-allowed hidden" disabled>
+                    <i class="fas fa-user-shield w-5 text-center"></i> Verifikasi Akun (🔒)
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 border-t border-slate-800 bg-slate-950/50">
+            <div class="flex items-center justify-between p-3 bg-slate-900 rounded-xl border border-slate-800">
+                <div class="flex items-center gap-2">
+                    <i id="mod-icon" class="fas fa-lock text-rose-400"></i>
+                    <span class="text-xs font-semibold text-slate-300">Mode Moderator</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="moderatorToggle" onchange="validateModerator()" class="sr-only peer">
+                    <div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+                </label>
+            </div>
+            <button onclick="handleLogout()" class="w-full mt-3 bg-slate-900 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs py-2 rounded-lg border border-slate-800 transition"><i class="fas fa-sign-out-alt mr-1"></i> Keluar</button>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col min-w-0 hidden relative z-10" id="main-content-area">
+        <header class="bg-slate-950/40 border-b border-slate-800 px-6 py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3 backdrop-blur-sm">
+            <h2 id="page-title" class="text-xl font-bold text-white">Sistem Presensi Anggota</h2>
+            <div class="flex items-center gap-3 bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 w-fit">
+                <i class="far fa-clock text-amber-400 animate-pulse"></i>
+                <span id="live-clock" class="font-mono text-sm tracking-wide text-slate-200">Memuat Waktu...</span>
+            </div>
+        </header>
+
+        <main class="p-6 max-w-7xl w-full mx-auto space-y-6">
+
+            <div id="tab-absen" class="tab-content block space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-slate-950/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 space-y-6">
+                        <div>
+                            <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fas fa-user-plus text-emerald-400"></i> Tambah Anggota (Mod)</h3>
+                            <div class="space-y-3">
+                                <input type="text" id="emp-name" placeholder="Nama Lengkap Anggota" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white mod-editable" disabled>
+                                <input type="text" id="emp-role" placeholder="Posisi / Tugas Instrumentalis" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white mod-editable" disabled>
+                                <button onclick="registerEmployee()" class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-850 disabled:text-slate-600 font-bold py-2.5 rounded-xl text-sm transition mod-editable-btn" disabled><i class="fas fa-plus mr-1"></i> Daftarkan Anggota</button>
+                            </div>
+                        </div>
+                        <hr class="border-slate-800">
+                        <div>
+                            <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fas fa-fingerprint text-amber-400"></i> Terminal Absensi Mandiri</h3>
+                            <div class="space-y-3">
+                                <select id="select-karyawan" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none">
+                                    <option value="">-- Pilih Anggota --</option>
+                                </select>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button onclick="doAbsen('MASUK')" class="p-3 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-bold transition flex flex-col items-center gap-1"><i class="fas fa-sign-in-alt text-base"></i> ABSEN MASUK</button>
+                                    <button onclick="doAbsen('PULANG')" class="p-3 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/30 text-amber-500 rounded-xl text-xs font-bold transition flex flex-col items-center gap-1"><i class="fas fa-sign-out-alt text-base"></i> ABSEN PULANG</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 lg:col-span-2 flex flex-col">
+                        <h3 class="text-sm font-bold text-white mb-4">Status Log Hadir Realtime Hari Ini</h3>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase font-semibold">
+                                        <th class="pb-3">Nama Anggota</th>
+                                        <th class="pb-3">Posisi Kerja</th>
+                                        <th class="pb-3 text-center">Jam Masuk</th>
+                                        <th class="pb-3 text-center">Jam Pulang</th>
+                                        <th class="pb-3 text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-absen" class="divide-y divide-slate-900 text-slate-300">
+                                    <tr id="empty-absen"><td colspan="5" class="py-8 text-center text-slate-500 italic">Data absen harian kosong. Belum ada entri terdaftar.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-rekap" class="tab-content hidden space-y-6">
+                <div class="bg-slate-950/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
+                        <div>
+                            <h3 class="text-md font-bold text-white">Log Arsip & Rekapitulasi Presensi Anggota</h3>
+                            <p class="text-xs text-slate-500">Daftar rekaman berjalan (Dapat dilihat oleh seluruh personil)</p>
+                        </div>
+                        <button onclick="clearRekapData()" class="bg-rose-500/15 text-rose-400 border border-rose-500/20 hover:bg-rose-500 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition mod-editable-btn" disabled><i class="fas fa-trash-can mr-1"></i> Reset Seluruh Rekap (Mod)</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="text-slate-400 text-xs border-b border-slate-900 bg-slate-900/50">
+                                    <th class="p-3 rounded-l-xl">Hari / Tanggal</th>
+                                    <th class="p-3">Nama Lengkap</th>
+                                    <th class="p-3 text-center">Absen Masuk</th>
+                                    <th class="p-3 text-center rounded-r-xl">Absen Pulang</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-rekap" class="divide-y divide-slate-900 text-slate-300">
+                                <tr id="empty-rekap"><td colspan="4" class="p-8 text-center text-slate-500 italic">Belum ada history rekapitulasi terkumpul.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-asset" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-slate-950/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800">
+                        <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-plus text-sky-400"></i> Tambah Asset Baru (Mod)</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1.5">Nama Jenis / Tipe Instrumen</label>
+                                <input type="text" id="asset-name" placeholder="Contoh: Violin Piano" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white mod-editable" disabled>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1.5">Penanggung Jawab (User)</label>
+                                <input type="text" id="asset-user" placeholder="Nama pemegang instrumen" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white mod-editable" disabled>
+                            </div>
+                            <button onclick="registerAsset()" class="w-full bg-sky-600 hover:bg-sky-700 disabled:bg-slate-850 disabled:text-slate-600 font-bold py-3 rounded-xl text-sm transition mod-editable-btn" disabled>Daftarkan Inventaris</button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 lg:col-span-2 flex flex-col">
+                        <h3 class="text-sm font-bold text-white mb-4">Buku Inventarisasi Log Aset Resmi</h3>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-slate-400 text-xs font-semibold">
+                                        <th class="pb-3">Nomor Registrasi Aset</th>
+                                        <th class="pb-3">Deskripsi Aset</th>
+                                        <th class="pb-3">Pengguna Terdaftar</th>
+                                        <th class="pb-3 text-right">Kondisi Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-asset" class="divide-y divide-slate-900 text-slate-300">
+                                    <tr id="empty-asset"><td colspan="4" class="py-8 text-center text-slate-500 italic">Buku daftar inventaris aset kosong.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-kas" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-slate-950/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800">
+                        <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2"><i class="fas fa-edit text-amber-400"></i> Catat Jurnal Akuntansi</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1.5">Klasifikasi Aliran</label>
+                                <select id="k-tipe" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white">
+                                    <option value="MASUK">Kas Masuk (Debit)</option>
+                                    <option value="KELUAR">Kas Keluar (Kredit)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1.5">Nominal Transaksi (Rp)</label>
+                                <input type="number" id="k-jumlah" placeholder="Contoh: 2500000" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1.5">Deskripsi Alokasi Kebijakan</label>
+                                <input type="text" id="k-kat" placeholder="Sewa Auditorium, Konsumsi Orkestra" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-sm text-white">
+                            </div>
+                            <button onclick="addKas()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl text-sm transition">Posting Neraca</button>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 lg:col-span-2">
+                        <h3 class="text-sm font-bold text-white mb-4">Arus Buku Kas Utama</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-800 text-slate-400 text-xs">
+                                        <th class="pb-3">Timestamp</th>
+                                        <th class="pb-3">Keterangan Alokasi</th>
+                                        <th class="pb-3 text-right">Debit (+)</th>
+                                        <th class="pb-3 text-right">Kredit (-)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-kas" class="divide-y divide-slate-900 text-slate-300">
+                                    <tr id="empty-kas"><td colspan="4" class="py-8 text-center text-slate-500 italic">Buku laporan neraca kas kosong.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-approval" class="tab-content hidden space-y-6">
+                <div class="bg-slate-950/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 space-y-4">
+                    <div>
+                        <h3 class="text-md font-bold text-white">Verifikasi & Validasi Akses Akun</h3>
+                        <p class="text-xs text-slate-500">Gunakan wewenang Anda untuk memberikan persetujuan registrasi anggota baru.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="text-slate-400 text-xs border-b border-slate-900 bg-slate-900/50">
+                                    <th class="p-3">Nama Pengguna Terdaftar</th>
+                                    <th class="p-3">Status Otentikasi</th>
+                                    <th class="p-3 text-right">Tindakan Eksekusi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-approval" class="divide-y divide-slate-900 text-slate-300">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Memuat/menginisialisasi basis data persisten dari browser penyimpanan lokal
+        let akunDatabase = JSON.parse(localStorage.getItem('MSO_akunDatabase')) || [
+            { username: "Bonartha Wibowo Simaremare", password: "Gameku980", approved: true }
+        ];
+        let dataKaryawan = JSON.parse(localStorage.getItem('MSO_dataKaryawan')) || [];
+        let dataAsset = JSON.parse(localStorage.getItem('MSO_dataAsset')) || [];
+        let dataKas = JSON.parse(localStorage.getItem('MSO_dataKas')) || [];
+        let dataRekap = JSON.parse(localStorage.getItem('MSO_dataRekap')) || [];
+        let assetAutoId = parseInt(localStorage.getItem('MSO_assetAutoId')) || 0;
+        let lastCheckedDay = localStorage.getItem('MSO_lastCheckedDay') || new Date().getDate().toString();
+
+        const ADMIN_PASS = "MSOSUKSES2026";
+        let sessionUser = null;
+
+        function commitStorage() {
+            localStorage.setItem('MSO_akunDatabase', JSON.stringify(akunDatabase));
+            localStorage.setItem('MSO_dataKaryawan', JSON.stringify(dataKaryawan));
+            localStorage.setItem('MSO_dataAsset', JSON.stringify(dataAsset));
+            localStorage.setItem('MSO_dataKas', JSON.stringify(dataKas));
+            localStorage.setItem('MSO_dataRekap', JSON.stringify(dataRekap));
+            localStorage.setItem('MSO_assetAutoId', assetAutoId.toString());
+            localStorage.setItem('MSO_lastCheckedDay', lastCheckedDay.toString());
+        }
+
+        function initLiveClock() {
+            setInterval(() => {
+                const now = new Date();
+                
+                // Mekanisme reset data absensi harian otomatis saat berganti hari (pukul 00:00)
+                if(now.getDate().toString() !== lastCheckedDay) {
+                    lastCheckedDay = now.getDate().toString();
+                    dataKaryawan.forEach(emp => {
+                        emp.masuk = '--:--';
+                        emp.pulang = '--:--';
+                        emp.status = 'Belum Hadir';
+                    });
+                    commitStorage();
+                    renderTableAbsen();
+                }
+                
+                const opsi = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('live-clock').innerText = `${now.toLocaleDateString('id-ID', opsi)} | ${now.toLocaleTimeString('id-ID', { hour12: false })}`;
+            }, 1000);
+        }
+        initLiveClock();
+
+        function toggleAuthPanel(toRegister) {
+            document.getElementById('login-form-panel').classList.toggle('hidden', toRegister);
+            document.getElementById('register-form-panel').classList.toggle('hidden', !toRegister);
+        }
+
+        function handleRegister() {
+            const user = document.getElementById('reg-user').value.trim();
+            const pass = document.getElementById('reg-pass').value.trim();
+            if(!user || !pass) return alert("Isi seluruh data pembuatan akun baru!");
+            if(akunDatabase.find(x => x.username.toLowerCase() === user.toLowerCase())) return alert("Nama pengguna tersebut sudah terdaftar!");
+
+            akunDatabase.push({ username: user, password: pass, approved: false });
+            commitStorage();
+            alert("Pendaftaran berhasil! Silakan hubungi Moderator Utama untuk memverifikasi akun Anda.");
+            document.getElementById('reg-user').value = '';
+            document.getElementById('reg-pass').value = '';
+            toggleAuthPanel(false);
+            renderApprovalTable();
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('auth-user').value.trim();
+            const pass = document.getElementById('auth-pass').value.trim();
+            const match = akunDatabase.find(x => x.username === user && x.password === pass);
+
+            if(!match) return alert("Nama Pengguna atau Kata Sandi salah!");
+            if(!match.approved) return alert("Akses Ditolak! Akun Anda belum di-approve oleh Moderator.");
+
+            sessionUser = match.username;
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('main-sidebar').classList.remove('hidden');
+            document.getElementById('main-content-area').classList.remove('hidden');
+            
+            // Render seluruh tabel data bawaan pasca sukses login
+            renderTableAbsen();
+            syncEmployeeDropdown();
+            renderRekapTable();
+            renderAssetTable();
+            renderKasTable();
+            renderApprovalTable();
+        }
+
+        function handleLogout() {
+            sessionUser = null;
+            document.getElementById('moderatorToggle').checked = false;
+            validateModerator();
+            document.getElementById('auth-user').value = '';
+            document.getElementById('auth-pass').value = '';
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('main-content-area').classList.add('hidden');
+        }
+
+        function validateModerator() {
+            const isChecked = document.getElementById('moderatorToggle').checked;
+            const kasBtn = document.getElementById('nav-kas-btn');
+            const appBtn = document.getElementById('nav-approval-btn');
+
+            if(isChecked) {
+                const inputSandi = prompt("Masukkan Kata Sandi Keamanan Kunci Moderator:");
+                if(inputSandi === ADMIN_PASS) {
+                    document.getElementById('mod-icon').className = "fas fa-lock-open text-emerald-400";
+                    setFieldsLocked(false);
+                    kasBtn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white font-medium transition";
+                    appBtn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white font-medium transition";
+                    kasBtn.removeAttribute('disabled');
+                    appBtn.removeAttribute('disabled');
+                } else {
+                    alert("Sandi Salah! Akses Otoritas Pengubahan Ditolak.");
+                    document.getElementById('moderatorToggle').checked = false;
+                    setFieldsLocked(true);
+                }
+            } else {
+                document.getElementById('mod-icon').className = "fas fa-lock text-rose-400";
+                setFieldsLocked(true);
+                kasBtn.className = "nav-btn w-full items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-medium cursor-not-allowed hidden";
+                appBtn.className = "nav-btn w-full items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-medium cursor-not-allowed hidden";
+                kasBtn.setAttribute('disabled', 'true');
+                appBtn.setAttribute('disabled', 'true');
+                switchTab('absen');
+            }
+        }
+
+        function setFieldsLocked(locked) {
+            const editables = document.querySelectorAll('.mod-editable, .mod-editable-btn');
+            editables.forEach(el => {
+                if(locked) el.setAttribute('disabled', 'true');
+                else el.removeAttribute('disabled');
+            });
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + name).classList.remove('hidden');
+
+            const titles = {
+                'absen': 'Sistem Presensi Anggota', 'rekap': 'Log Arsip & Rekapitulasi Presensi',
+                'asset': 'Manajemen Inventaris Alat Musik', 'kas': 'Buku Neraca Akuntansi Kas', 'approval': 'Verifikasi Otoritas Akun'
+            };
+            document.getElementById('page-title').innerText = titles[name];
+
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => {
+                if(!btn.hasAttribute('disabled')) {
+                    btn.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white font-medium transition";
+                }
+            });
+            if(event && event.currentTarget && !event.currentTarget.hasAttribute('disabled')) {
+                event.currentTarget.className = "nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold transition";
+            }
+        }
+
+        function registerEmployee() {
+            const name = document.getElementById('emp-name').value.trim();
+            const role = document.getElementById('emp-role').value.trim();
+            if(!name || !role) return alert("Harap isi nama anggota beserta perannya!");
+
+            const newId = new Date().getTime(); 
+            dataKaryawan.push({ id: newId, nama: name, posisi: role, status: 'Belum Hadir', masuk: '--:--', pulang: '--:--' });
+            commitStorage();
+
+            renderTableAbsen();
+            syncEmployeeDropdown();
+            document.getElementById('emp-name').value = '';
+            document.getElementById('emp-role').value = '';
+        }
+
+        function syncEmployeeDropdown() {
+            const select = document.getElementById('select-karyawan');
+            select.innerHTML = '<option value="">-- Pilih Anggota --</option>';
+            dataKaryawan.forEach(emp => {
+                const opt = document.createElement('option');
+                opt.value = emp.id;
+                opt.innerText = `${emp.nama} (${emp.posisi})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderTableAbsen() {
+            const tbody = document.getElementById('table-absen');
+            tbody.innerHTML = '';
+            if(dataKaryawan.length === 0) {
+                tbody.innerHTML = `<tr id="empty-absen"><td colspan="5" class="py-8 text-center text-slate-500 italic">Data absen harian kosong. Belum ada entri terdaftar.</td></tr>`;
+                return;
+            }
+            dataKaryawan.forEach(x => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="py-3 font-semibold text-white">${x.nama}</td><td class="py-3 text-slate-400">${x.posisi}</td><td class="py-3 text-center font-mono text-emerald-400">${x.masuk}</td><td class="py-3 text-center font-mono text-amber-400">${x.pulang}</td><td class="py-3 text-right"><span class="px-2 py-0.5 rounded text-xs bg-slate-800 text-slate-400">${x.status}</span></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function doAbsen(tipe) {
+            const id = document.getElementById('select-karyawan').value;
+            if(!id) return alert("Silakan tentukan nama personil terlebih dahulu!");
+
+            const target = dataKaryawan.find(x => x.id == id);
+            const tgl = new Date();
+            const jam = tgl.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+            const formatTgl = tgl.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+            if(tipe === 'MASUK') {
+                if(target.masuk !== '--:--') return alert("Anggota yang bersangkutan telah mengambil absensi masuk!");
+                target.masuk = jam;
+                target.status = 'Aktif';
+                
+                dataRekap.unshift({ id: target.id + '_' + tgl.getDate(), tanggal: formatTgl, nama: target.nama, masuk: jam, pulang: '--:--' });
+            } else {
+                if(target.masuk === '--:--') return alert("Gagal! Personil harus mencatatkan absen MASUK terlebih dulu.");
+                if(target.pulang !== '--:--') return alert("Anggota yang bersangkutan telah mengambil absensi pulang!");
+                target.pulang = jam;
+                target.status = 'Selesai';
+                
+                const matchRekap = dataRekap.find(r => r.nama === target.nama);
+                if(matchRekap) matchRekap.pulang = jam;
+            }
+            commitStorage();
+            renderTableAbsen();
+            renderRekapTable();
+        }
+
+        function renderRekapTable() {
+            const tbody = document.getElementById('table-rekap');
+            tbody.innerHTML = '';
+            if(dataRekap.length === 0) {
+                tbody.innerHTML = `<tr id="empty-rekap"><td colspan="4" class="p-8 text-center text-slate-500 italic">Belum ada history rekapitulasi terkumpul.</td></tr>`;
+                return;
+            }
+            dataRekap.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/40 transition";
+                tr.innerHTML = `<td class="p-3 font-medium text-slate-400">${r.tanggal}</td><td class="p-3 text-white font-semibold">${r.nama}</td><td class="p-3 text-center font-mono text-emerald-400">${r.masuk}</td><td class="p-3 text-center font-mono text-amber-400">${r.pulang || '--:--'}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function clearRekapData() {
+            if(confirm("Apakah Anda yakin ingin menghapus bersih seluruh rekaman log rekapitulasi?")) {
+                dataRekap = [];
+                commitStorage();
+                renderRekapTable();
+            }
+        }
+
+        function registerAsset() {
+            const nama = document.getElementById('asset-name').value.trim();
+            const user = document.getElementById('asset-user').value.trim();
+            if(!nama || !user) return alert("Isi nama tipe instrumen beserta penanggung jawabnya!");
+
+            assetAutoId++;
+            const generatedNo = `MSO-AST-${String(assetAutoId).padStart(3, '0')}`;
+
+            dataAsset.unshift({ no: generatedNo, nama: nama, user: user });
+            commitStorage();
+            
+            renderAssetTable();
+            document.getElementById('asset-name').value = '';
+            document.getElementById('asset-user').value = '';
+        }
+
+        function renderAssetTable() {
+            const tbody = document.getElementById('table-asset');
+            tbody.innerHTML = '';
+            if(dataAsset.length === 0) {
+                tbody.innerHTML = `<tr id="empty-asset"><td colspan="4" class="py-8 text-center text-slate-500 italic">Buku daftar inventaris aset kosong.</td></tr>`;
+                return;
+            }
+            dataAsset.forEach(a => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td class="py-3 font-mono text-sky-400 font-bold">${a.no}</td><td class="py-3 font-semibold text-white">${a.nama}</td><td class="py-3 text-slate-400">${a.user}</td><td class="py-3 text-right"><span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs rounded">Operasional</span></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addKas() {
+            const tipe = document.getElementById('k-tipe').value;
+            const jumlah = document.getElementById('k-jumlah').value;
+            const kat = document.getElementById('k-kat').value.trim();
+            if(!jumlah || !kat) return alert("Lengkapi nominal angka uang dan penugasan keterangannya!");
+
+            const jam = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+            
+            dataKas.unshift({ tipe: tipe, waktu: jam, detail: kat, nominal: parseInt(jumlah) });
+            commitStorage();
+
+            renderKasTable();
+            document.getElementById('k-jumlah').value = '';
+            document.getElementById('k-kat').value = '';
+        }
+
+        function renderKasTable() {
+            const tbody = document.getElementById('table-kas');
+            tbody.innerHTML = '';
+            if(dataKas.length === 0) {
+                tbody.innerHTML = `<tr id="empty-kas"><td colspan="4" class="py-8 text-center text-slate-500 italic">Buku laporan neraca kas bersih kosong.</td></tr>`;
+                return;
+            }
+            dataKas.forEach(k => {
+                const tr = document.createElement('tr');
+                const formatRupiah = k.nominal.toLocaleString('id-ID');
+                if(k.tipe === 'MASUK') {
+                    tr.innerHTML = `<td class="py-3 font-mono text-xs text-slate-500">${k.waktu}</td><td class="py-3 font-medium text-white">${k.detail}</td><td class="py-3 text-right text-emerald-400 font-mono font-bold">+ Rp ${formatRupiah}</td><td class="py-3 text-right text-slate-700 font-mono">-</td>`;
+                } else {
+                    tr.innerHTML = `<td class="py-3 font-mono text-xs text-slate-500">${k.waktu}</td><td class="py-3 font-medium text-white">${k.detail}</td><td class="py-3 text-right text-slate-700 font-mono">-</td><td class="py-3 text-right text-rose-400 font-mono font-bold">- Rp ${formatRupiah}</td>`;
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderApprovalTable() {
+            const tbody = document.getElementById('table-approval');
+            tbody.innerHTML = '';
+            
+            let subUsers = akunDatabase.slice(1);
+            if(subUsers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-500 italic">Tidak ada antrean pendaftaran pengguna baru.</td></tr>`;
+                return;
+            }
+            
+            akunDatabase.forEach((akun, index) => {
+                if(index === 0) return; 
+                const tr = document.createElement('tr');
+                const status = akun.approved ? 
+                    `<span class="text-emerald-400 font-bold text-xs bg-emerald-500/10 px-2 py-1 rounded">VERIFIED</span>` : 
+                    `<span class="text-amber-400 font-bold text-xs bg-amber-500/10 px-2 py-1 rounded">PENDING MTR</span>`;
+                const actionBtn = akun.approved ? 
+                    `<button class="text-xs bg-slate-800 text-slate-500 py-1 px-3 rounded cursor-not-allowed" disabled>Terverifikasi</button>` :
+                    `<button onclick="approveUser(${index})" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 rounded-lg transition shadow-md">Setujui Akses</button>`;
+
+                tr.innerHTML = `<td class="p-3 font-medium text-slate-200">${akun.username}</td><td class="p-3">${status}</td><td class="p-3 text-right">${actionBtn}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function approveUser(idx) {
+            akunDatabase[idx].approved = true;
+            commitStorage();
+            alert(`Akun "${akunDatabase[idx].username}" berhasil disetujui! Anggota tersebut kini bisa masuk.`);
+            renderApprovalTable();
+        }
+    </script>
+</body>
+</html>
